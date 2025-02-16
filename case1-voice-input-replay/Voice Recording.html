@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Input and Replay</title>
+  </head>
+  <body>
+    <h1>Voice Input and Replay</h1>
+
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording" disabled>Stop Recording</button>
+    <button id="replayAudio" disabled>Replay Audio</button>
+
+    <p id="outputText">The recognized text will appear here.</p>
+    <audio id="audioPlayer" controls></audio>
+
+    <script>
+      let mediaRecorder;
+      let audioChunks = [];
+      let recordedAudioBlob;
+      let recognition;
+      let audioPlayer = document.getElementById("audioPlayer");
+      let outputText = document.getElementById("outputText");
+
+      document
+        .getElementById("startRecording")
+        .addEventListener("click", async () => {
+          // Start audio recording
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          mediaRecorder = new MediaRecorder(stream);
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            recordedAudioBlob = new Blob(audioChunks, { type: "audio/wav" });
+            audioPlayer.src = URL.createObjectURL(recordedAudioBlob);
+            document.getElementById("replayAudio").disabled = false;
+            audioChunks = []; // Clear after stopping
+          };
+
+          mediaRecorder.start();
+          document.getElementById("startRecording").disabled = true;
+          document.getElementById("stopRecording").disabled = false;
+        });
+
+      document.getElementById("stopRecording").addEventListener("click", () => {
+        mediaRecorder.stop();
+        document.getElementById("startRecording").disabled = false;
+        document.getElementById("stopRecording").disabled = true;
+      });
+
+      document.getElementById("replayAudio").addEventListener("click", () => {
+        audioPlayer.play();
+      });
+
+      // Speech Recognition
+      if ("webkitSpeechRecognition" in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event) => {
+          const lastResult = event.results[event.results.length - 1];
+          const transcript = lastResult[0].transcript;
+          outputText.textContent = `Recognized text: ${transcript}`;
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error:", event.error);
+        };
+
+        recognition.onend = () => {
+          recognition.start(); // Restart recognition after it ends
+        };
+
+        // Start speech recognition
+        recognition.start();
+      }
+    </script>
+  </body>
+</html>
