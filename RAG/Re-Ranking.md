@@ -1,0 +1,3 @@
+- [Rankify: A Comprehensive Python Toolkit for Retrieval, Re-Ranking, and Retrieval-Augmented Generation](https://arxiv.org/html/2502.02464v2)
+- [Using LLM’s for Retrieval and Reranking](https://www.llamaindex.ai/blog/using-llms-for-retrieval-and-reranking-23cf2d3a14b6)
+- [ Open-source RAG evaluation and testing](https://www.evidentlyai.com/blog/open-source-rag-evaluation-tool)
