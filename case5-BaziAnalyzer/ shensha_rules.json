@@ -1,0 +1,26 @@
+[
+    {
+      "name": "天乙贵人",
+      "description": "根据《三命通会》规则，当日干为甲、戊、庚且任一柱的地支为丑或未时触发。",
+      "conditions": {
+        "day_gan": ["甲", "戊", "庚"],
+        "allowed_zhi": ["丑", "未"]
+      }
+    },
+    {
+      "name": "示例神煞",
+      "description": "当日干为乙且任一柱的地支为子或申时触发的示例规则。",
+      "conditions": {
+        "day_gan": ["乙"],
+        "allowed_zhi": ["子", "申"]
+      }
+    },
+    {
+      "name": "福星高照",
+      "description": "当日干为丙或丁，且至少有一柱地支为亥或酉时触发，预示福气临门。",
+      "conditions": {
+        "day_gan": ["丙", "丁"],
+        "allowed_zhi": ["亥", "酉"]
+      }
+    }
+  ]

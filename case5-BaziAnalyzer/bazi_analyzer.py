@@ -8,41 +8,153 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 # ============= Module: models =============
+from typing import Dict, List, Tuple
+
 class GanZhi:
     """
-    干支数据结构：定义天干和地支的基本属性及关系。
+    干支数据结构：基于《三命通会》对天干和地支的描述，
+    增加详细属性，如天干的五行、阴阳、序号以及地支的藏干、三合、冲、合、刑、害等关系。
     """
     def __init__(self):
+        # 天干属性：增加了“序号”，后续可扩展其他属性（如生克、制化等）
         self.gan: Dict[str, Dict[str, str]] = {
-            '甲': {'wx': '木', 'yy': '阳'},
-            '乙': {'wx': '木', 'yy': '阴'},
-            '丙': {'wx': '火', 'yy': '阳'},
-            '丁': {'wx': '火', 'yy': '阴'},
-            '戊': {'wx': '土', 'yy': '阳'},
-            '己': {'wx': '土', 'yy': '阴'},
-            '庚': {'wx': '金', 'yy': '阳'},
-            '辛': {'wx': '金', 'yy': '阴'},
-            '壬': {'wx': '水', 'yy': '阳'},
-            '癸': {'wx': '水', 'yy': '阴'}
+            '甲': {'wx': '木', 'yy': '阳', 'order': '1'},
+            '乙': {'wx': '木', 'yy': '阴', 'order': '2'},
+            '丙': {'wx': '火', 'yy': '阳', 'order': '3'},
+            '丁': {'wx': '火', 'yy': '阴', 'order': '4'},
+            '戊': {'wx': '土', 'yy': '阳', 'order': '5'},
+            '己': {'wx': '土', 'yy': '阴', 'order': '6'},
+            '庚': {'wx': '金', 'yy': '阳', 'order': '7'},
+            '辛': {'wx': '金', 'yy': '阴', 'order': '8'},
+            '壬': {'wx': '水', 'yy': '阳', 'order': '9'},
+            '癸': {'wx': '水', 'yy': '阴', 'order': '10'}
         }
+        # 地支属性：扩展《三命通会》中对地支的描述，包含藏干、三友、宫位，并新增“冲”、“合”、“刑”、“害”等关系
         self.zhi: Dict[str, Dict] = {
-            '子': {'canggan': [('癸', 1.0)], 'sanyou': '鼠', 'gongwei': '坎宫'},
-            '丑': {'canggan': [('己', 0.6), ('癸', 0.3), ('辛', 0.1)], 'sanyou': '牛', 'gongwei': '艮宫'},
-            '寅': {'canggan': [('甲', 0.6), ('丙', 0.3), ('戊', 0.1)], 'sanyou': '虎', 'gongwei': '震宫'},
-            # 可扩展其他地支数据
+            '子': {
+                'canggan': [('癸', 1.0)],
+                'sanyou': '鼠',
+                'gongwei': '坎宫',
+                'chong': ['午'],      # 子午冲
+                'he': ['亥', '丑'],    # 示例：子与亥、丑合局（后续可进一步细化）
+                'xing': ['卯'],       # 示例刑（具体刑局在《三命通会》中有详细记载）
+                'hai': []             # 无害
+            },
+            '丑': {
+                'canggan': [('己', 0.6), ('癸', 0.3), ('辛', 0.1)],
+                'sanyou': '牛',
+                'gongwei': '艮宫',
+                'chong': ['未'],
+                'he': ['戌', '子'],    # 示例数据
+                'xing': [],
+                'hai': ['未']         # 丑害未（示例）
+            },
+            '寅': {
+                'canggan': [('甲', 0.6), ('丙', 0.3), ('戊', 0.1)],
+                'sanyou': '虎',
+                'gongwei': '震宫',
+                'chong': ['申'],
+                'he': ['巳'],         # 寅与巳合火局（示例）
+                'xing': ['巳'],       # 寅刑巳（示例）
+                'hai': []
+            },
+            '卯': {
+                'canggan': [('乙', 1.0)],
+                'sanyou': '兔',
+                'gongwei': '巽宫',
+                'chong': ['酉'],
+                'he': ['未'],         # 示例数据
+                'xing': ['酉'],       # 示例数据
+                'hai': []
+            },
+            '辰': {
+                'canggan': [('戊', 0.7), ('乙', 0.2), ('癸', 0.1)],
+                'sanyou': '龙',
+                'gongwei': '中宫',
+                'chong': ['戌'],
+                'he': ['酉'],         # 示例数据
+                'xing': [],
+                'hai': []
+            },
+            '巳': {
+                'canggan': [('丙', 0.7), ('戊', 0.2), ('庚', 0.1)],
+                'sanyou': '蛇',
+                'gongwei': '离宫',
+                'chong': ['亥'],
+                'he': ['寅'],         # 示例数据
+                'xing': ['寅'],       # 示例数据
+                'hai': []
+            },
+            '午': {
+                'canggan': [('丁', 0.7), ('己', 0.3)],
+                'sanyou': '马',
+                'gongwei': '离宫',
+                'chong': ['子'],
+                'he': ['申'],         # 示例数据
+                'xing': [],
+                'hai': []
+            },
+            '未': {
+                'canggan': [('己', 0.6), ('丁', 0.3), ('乙', 0.1)],
+                'sanyou': '羊',
+                'gongwei': '坤宫',
+                'chong': ['丑'],
+                'he': ['卯'],         # 示例数据
+                'xing': [],
+                'hai': ['丑']         # 示例数据
+            },
+            '申': {
+                'canggan': [('庚', 0.7), ('壬', 0.2), ('戊', 0.1)],
+                'sanyou': '猴',
+                'gongwei': '兑宫',
+                'chong': ['寅'],
+                'he': ['午'],         # 示例数据
+                'xing': [],
+                'hai': []
+            },
+            '酉': {
+                'canggan': [('辛', 1.0)],
+                'sanyou': '鸡',
+                'gongwei': '兑宫',
+                'chong': ['卯'],
+                'he': ['辰'],         # 示例数据
+                'xing': [],
+                'hai': []
+            },
+            '戌': {
+                'canggan': [('戊', 0.7), ('辛', 0.2), ('丁', 0.1)],
+                'sanyou': '狗',
+                'gongwei': '艮宫',
+                'chong': ['辰'],
+                'he': ['丑'],         # 示例数据
+                'xing': [],
+                'hai': []
+            },
+            '亥': {
+                'canggan': [('壬', 0.7), ('甲', 0.3)],
+                'sanyou': '猪',
+                'gongwei': '坎宫',
+                'chong': ['巳'],
+                'he': ['子'],         # 示例数据
+                'xing': [],
+                'hai': []
+            }
         }
 
 class MingPan:
     """
-    命盘模型：包含四柱（年、月、日、时）、五行能量和十神配置。
+    命盘模型：基于《三命通会》理论扩展，包含四柱、五行能量、十神、命宫及其他辅助信息。
     """
     def __init__(self):
+        # 四柱信息：记录年、月、日、时的天干、地支以及十神（例如正官、七杀等），
+        # 后续可根据详细规则自动计算十神配置
         self.pillars: Dict[str, Dict[str, str]] = {
-            'year': {'gan': '', 'zhi': ''},
-            'month': {'gan': '', 'zhi': ''},
-            'day': {'gan': '', 'zhi': ''},
-            'hour': {'gan': '', 'zhi': ''}
+            'year': {'gan': '', 'zhi': '', 'ten_god': ''},
+            'month': {'gan': '', 'zhi': '', 'ten_god': ''},
+            'day': {'gan': '', 'zhi': '', 'ten_god': ''},
+            'hour': {'gan': '', 'zhi': '', 'ten_god': ''}
         }
+        # 五行能量：记录各元素得分以及相关衍生数据
         self.wuxing: Dict[str, Dict[str, float]] = {
             '木': {'score': 0.0, 'sheng': 0, 'ke': 0},
             '火': {'score': 0.0, 'sheng': 0, 'ke': 0},
@@ -50,15 +162,18 @@ class MingPan:
             '金': {'score': 0.0, 'sheng': 0, 'ke': 0},
             '水': {'score': 0.0, 'sheng': 0, 'ke': 0}
         }
+        # 十神配置：存储每柱对应的十神信息，如比肩、劫财、食神、伤官、正官、七杀、正印、偏印等
+        self.ten_gods: Dict[str, str] = {
+            'year': '',
+            'month': '',
+            'day': '',
+            'hour': ''
+        }
+        # 扩展属性：例如命宫、身宫等
+        self.minggong: str = ""
+        self.shen_gong: str = ""
+        # 神煞列表，用于记录命盘中的吉凶标记
         self.shenshen: List[str] = []
-
-    def to_vector(self) -> np.ndarray:
-        """
-        转换命盘为特征向量（示例：五行得分累加和十神数量）。
-        """
-        wuxing_score = sum(item['score'] for item in self.wuxing.values())
-        tenshin_count = len(self.shenshen)
-        return np.array([wuxing_score, tenshin_count])
 
 # ============= Module: calendar_conversion =============
 class CalendarConverter:
