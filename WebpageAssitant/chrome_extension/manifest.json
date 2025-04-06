@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "WebpageAssitant",
+  "version": "1.0",
+  "description": "Translate and explain selected text using your local Ollama service via FastAPI.",
+  "permissions": [
+    "contextMenus",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "http://localhost:8000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+}

@@ -4,3 +4,7 @@ case3-r1/.env
 case5-speech_synthesizer/.env
 case0315-lightRAG/
 vs-code-plugin/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
