@@ -80,21 +80,28 @@ doc_version_2 = """
 人家的哭声，是一个个被压榨至极的人。
 """
 
-# 构建请求的数据
-prompt = f"请比较以下两个文档版本的内容，并详细列出它们的变化。\n\n版本1:\n{doc_version_1}\n\n版本2:\n{doc_version_2}"
-data = {
-    "prompt": prompt,
-    "stream": False,
-    "model": "gemma3:1b"  # 请根据你的Ollama服务配置正确填写模型名称
-}
+import requests
 
-# 发送请求到本地Ollama服务
-response = requests.post('http://localhost:11434/api/generate', json=data)
+def compare_document_versions(doc_version_1, doc_version_2, model_name="qwen2.5:1.5b", ollama_url='http://localhost:11434/api/generate'):
+    # 构建请求的数据
+    prompt = f"请比较以下两个文档版本的内容，并详细列出它们的变化。\n\n版本1:\n{doc_version_1}\n\n版本2:\n{doc_version_2}"
+    data = {
+        "prompt": prompt,
+        "stream": False,
+        "model": model_name
+    }
 
-# 检查请求是否成功
-if response.status_code == 200:
-    # 获取并打印响应中的内容
-    changes_summary_markdown = response.json().get('response', '没有获取到响应内容')
-    print(changes_summary_markdown)
-else:
-    print(f"请求失败，状态码: {response.status_code}")
+    # 发送请求到本地Ollama服务
+    response = requests.post(ollama_url, json=data)
+
+    # 检查请求是否成功
+    if response.status_code == 200:
+        # 获取并返回响应中的内容
+        return response.json().get('response', '没有获取到响应内容')
+    else:
+        return f"请求失败，状态码: {response.status_code}"
+
+# 使用示例
+
+changes = compare_document_versions(doc_version_1, doc_version_2)
+print(changes)

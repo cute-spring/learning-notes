@@ -5,6 +5,8 @@ from pathlib import Path
 import pandas as pd
 import html
 from datetime import datetime
+import markdown
+
 
 def extract_pdf_text_by_page(pdf_path):
     doc = fitz.open(pdf_path)
@@ -36,6 +38,30 @@ def compare_texts(old_text, new_text):
 
     return additions, deletions, clean_html
 
+
+import requests
+
+def compare_document_versions(doc_version_1, doc_version_2, model_name="qwen2.5:0.5b", ollama_url='http://localhost:11434/api/generate'):
+    # 构建请求的数据
+    prompt = f"请比较以下两个文档版本的内容, 版本2比版本1更详细。请并详细列出它们的变化。the expected output format(in Chinese): added, deleted. \n\n版本1:\n{doc_version_1}\n\n版本2:\n{doc_version_2}"
+    data = {
+        "prompt": prompt,
+        "stream": False,
+        "model": model_name
+    }
+
+    # 发送请求到本地Ollama服务
+    response = requests.post(ollama_url, json=data)
+
+    # 检查请求是否成功
+    if response.status_code == 200:
+        # 获取并返回响应中的内容
+        return response.json().get('response', '没有获取到响应内容')
+    else:
+        return f"请求失败，状态码: {response.status_code}"
+
+
+
 def compare_pdf_versions_with_html(pdf_old_path, pdf_new_path):
     old_pages = extract_pdf_text_by_page(pdf_old_path)
     new_pages = extract_pdf_text_by_page(pdf_new_path)
@@ -46,18 +72,16 @@ def compare_pdf_versions_with_html(pdf_old_path, pdf_new_path):
         old_text = old_pages[i] if i < len(old_pages) else ""
         new_text = new_pages[i] if i < len(new_pages) else ""
         print(f"📘 正在比较第 {i+1} 页...")
-        print(new_text)
-        print(old_text)
-        added, deleted, html_diff = compare_texts(old_text, new_text)
-
-        if not added and not deleted:
-            continue  # 跳过无变化页
-
+        html_diff = compare_document_versions(old_text, new_text)
+        print(html_diff)
+        # if not added and not deleted:
+        #     continue  # 跳过无变化页
+        html = markdown.markdown(html_diff)
         results.append({
             "Page": i + 1,
-            "Added": "; ".join(added),
-            "Deleted": "; ".join(deleted),
-            "HTML Diff": html_diff
+            "Added": "; ".join([]),
+            "Deleted": "; ".join([]),
+            "HTML Diff": html
         })
 
     return pd.DataFrame(results)
